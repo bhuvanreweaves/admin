@@ -3,12 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "medusa build",
-    "start": "medusa start",
-    "dev": "medusa develop",
-    "seed": "medusa exec ./src/scripts/seed.ts",
-    "db:migrate": "medusa db:migrate",
-    "db:generate": "medusa db:generate"
+    "build": "node_modules/.bin/medusa build",
+    "start": "node_modules/.bin/medusa start",
+    "dev": "node_modules/.bin/medusa develop",
+    "seed": "node_modules/.bin/medusa exec ./src/scripts/seed.ts",
+    "db:migrate": "node_modules/.bin/medusa db:migrate",
+    "db:generate": "node_modules/.bin/medusa db:generate"
   },
   "dependencies": {
     "@medusajs/admin-sdk": "^2.16.0",
