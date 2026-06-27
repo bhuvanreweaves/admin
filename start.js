@@ -2,7 +2,6 @@
 const path = require('path');
 const { spawn } = require('child_process');
 
-// Force CWD to project root
 process.chdir(__dirname);
 
 const PORT = String(parseInt(process.env.PORT || '9000', 10));
@@ -10,11 +9,9 @@ const medusaBin = path.join(__dirname, 'node_modules', '.bin', 'medusa');
 
 process.stdout.write('[start.js] CWD: ' + process.cwd() + '\n');
 process.stdout.write('[start.js] PORT: ' + PORT + '\n');
-process.stdout.write('[start.js] NODE_ENV: ' + (process.env.NODE_ENV || 'production') + '\n');
 
-// Spawn medusa start with explicit --port flag.
-// This is the documented Medusa v2 way to set the HTTP binding port.
-// We also inject PORT in env so medusa-config.js picks it up as fallback.
+// Pass --port explicitly — medusa start reads port ONLY from this flag,
+// not from process.env.PORT or from medusa-config http.port.
 const child = spawn(medusaBin, ['start', '--port', PORT], {
   stdio: 'inherit',
   cwd: __dirname,
