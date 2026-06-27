@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@medusajs/cli": "^2.16.0",
+    "@medusajs/framework": "^2.16.0",
     "@medusajs/admin-sdk": "^2.16.0",
     "@medusajs/dashboard": "^2.8.4",
     "@medusajs/file-local": "^2.8.4",
