@@ -18,6 +18,6 @@
       "moduleResolution": "node"
     }
   },
-  "include": ["src", "medusa-config.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", ".medusa"]
 }
