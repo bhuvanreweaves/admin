@@ -4,7 +4,7 @@
     "module": "CommonJS",
     "lib": ["ES2021"],
     "strict": false,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "outDir": ".medusa/server",
@@ -15,7 +15,7 @@
     "transpileOnly": true,
     "compilerOptions": {
       "module": "CommonJS",
-      "moduleResolution": "node"
+      "moduleResolution": "node16"
     }
   },
   "include": ["src"],
