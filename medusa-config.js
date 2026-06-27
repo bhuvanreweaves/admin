@@ -2,6 +2,12 @@ const { loadEnv, defineConfig } = require("@medusajs/framework/utils");
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
+// Patch pg global defaults so ALL connections (including per-module
+// migrations that create their own pools) use SSL without cert verification.
+// databaseDriverOptions alone only covers Medusa's main connection.
+const pg = require("pg");
+pg.defaults.ssl = { rejectUnauthorized: false };
+
 module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
