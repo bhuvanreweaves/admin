@@ -11,7 +11,6 @@ module.exports = defineConfig({
         : {},
     redisUrl: process.env.REDIS_URL,
     http: {
-      port: parseInt(process.env.PORT || "9000"),
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
       authCors: process.env.AUTH_CORS!,
@@ -35,20 +34,24 @@ module.exports = defineConfig({
         ],
       },
     },
-    {
-      resolve: "@medusajs/medusa/payment",
-      options: {
-        providers: [
+    ...(process.env.STRIPE_API_KEY
+      ? [
           {
-            resolve: "@medusajs/payment-stripe",
-            id: "stripe",
+            resolve: "@medusajs/medusa/payment",
             options: {
-              apiKey: process.env.STRIPE_API_KEY || "",
+              providers: [
+                {
+                  resolve: "@medusajs/payment-stripe",
+                  id: "stripe",
+                  options: {
+                    apiKey: process.env.STRIPE_API_KEY,
+                  },
+                },
+              ],
             },
           },
-        ],
-      },
-    },
+        ]
+      : []),
     {
       resolve: "@medusajs/medusa/file",
       options: {
