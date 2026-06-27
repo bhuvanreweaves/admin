@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2021",
-    "module": "CommonJS",
+    "module": "Node16",
     "lib": ["ES2021"],
     "strict": false,
     "moduleResolution": "node16",
@@ -14,7 +14,7 @@
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {
-      "module": "CommonJS",
+      "module": "Node16",
       "moduleResolution": "node16"
     }
   },
