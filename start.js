@@ -1,19 +1,31 @@
 'use strict';
 const path = require('path');
+const { spawn } = require('child_process');
 
-// Force CWD to project root so medusa-config.js and .medusa/server/ are always found
-// regardless of which directory Hostinger invokes npm start from.
+// Force CWD to project root
 process.chdir(__dirname);
 
-// Ensure PORT is set before any Medusa code loads
-process.env.PORT = process.env.PORT || '9000';
+const PORT = String(parseInt(process.env.PORT || '9000', 10));
+const medusaBin = path.join(__dirname, 'node_modules', '.bin', 'medusa');
 
-console.log('[start.js] CWD: ' + process.cwd());
-console.log('[start.js] PORT: ' + process.env.PORT);
-console.log('[start.js] NODE_ENV: ' + (process.env.NODE_ENV || 'production'));
+process.stdout.write('[start.js] CWD: ' + process.cwd() + '\n');
+process.stdout.write('[start.js] PORT: ' + PORT + '\n');
+process.stdout.write('[start.js] NODE_ENV: ' + (process.env.NODE_ENV || 'production') + '\n');
 
-// Boot the compiled Medusa server directly.
-// medusa start exits after migration scripts without binding HTTP in Hostinger.
-// node .medusa/server/index.js is the correct production entry point per Medusa v2 docs:
-// it runs pending migration scripts AND starts the HTTP server.
-require(path.join(__dirname, '.medusa', 'server', 'index.js'));
+// Spawn medusa start with explicit --port flag.
+// This is the documented Medusa v2 way to set the HTTP binding port.
+// We also inject PORT in env so medusa-config.js picks it up as fallback.
+const child = spawn(medusaBin, ['start', '--port', PORT], {
+  stdio: 'inherit',
+  cwd: __dirname,
+  env: Object.assign({}, process.env, { PORT: PORT }),
+});
+
+child.on('error', function (err) {
+  process.stderr.write('[start.js] spawn error: ' + err.message + '\n');
+  process.exit(1);
+});
+
+child.on('exit', function (code) {
+  process.exit(code == null ? 1 : code);
+});
