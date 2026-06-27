@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node_modules/.bin/medusa build",
-    "start": "node_modules/.bin/medusa start",
+    "start": "node_modules/.bin/medusa db:migrate && node_modules/.bin/medusa start",
     "dev": "node_modules/.bin/medusa develop",
     "seed": "node_modules/.bin/medusa exec ./src/scripts/seed.ts",
     "db:migrate": "node_modules/.bin/medusa db:migrate",
