@@ -9,59 +9,38 @@ const path = require('path');
 
 const serverDir = path.join(__dirname, '.medusa', 'server');
 
-// 1. Write start.js into .medusa/server/ — works when run from that dir.
-//    Checks both local (.medusa/server/node_modules) and parent node_modules
-//    for the medusa binary since Hostinger may install in either location.
+// 1. Write start.js into .medusa/server/.
+//    Calls medusa's start() directly with directory=__dirname (.medusa/server/).
+//    No spawning — avoids binary-path and CWD resolution issues entirely.
+//    Node resolves require('@medusajs/medusa/...') up the directory tree to
+//    the project root's node_modules, whichever CWD Hostinger uses.
 const startScript = `'use strict';
 const path = require('path');
-const fs = require('fs');
-const { spawn } = require('child_process');
 
-const PORT = String(parseInt(process.env.PORT || '9000', 10));
-const NODE_ENV = process.env.NODE_ENV || 'production';
-
-// Hostinger may install node_modules in the output dir or the project root
-const localBin  = path.join(__dirname, 'node_modules', '.bin', 'medusa');
-const parentBin = path.join(__dirname, '..', '..', 'node_modules', '.bin', 'medusa');
-const medusaBin = fs.existsSync(localBin) ? localBin : parentBin;
-
-const env = Object.assign({}, process.env, { PORT: PORT, NODE_ENV: NODE_ENV });
+const PORT      = parseInt(process.env.PORT || '9000', 10);
+const directory = __dirname; // = .medusa/server/ at runtime
 
 process.stdout.write(JSON.stringify({
-  level:   'info',
-  message: '[server] starting medusa',
-  port:    PORT,
-  bin:     medusaBin,
-  cwd:     __dirname,
-  node:    process.version,
+  level:     'info',
+  message:   '[server/start.js] invoking medusa start',
+  port:      PORT,
+  directory: directory,
+  cwd:       process.cwd(),
+  node:      process.version,
 }) + '\\n');
 
-// cwd = .medusa/server/ so medusa reads the compiled output, not TypeScript source
-const child = spawn(medusaBin, ['start', '--port', PORT], {
-  stdio: ['inherit', 'inherit', 'pipe'],
-  cwd:   __dirname,
-  env:   env,
-});
-
-child.stderr.on('data', function (chunk) {
-  chunk.toString().split('\\n').forEach(function (line) {
-    if (line.trim()) {
-      process.stdout.write(JSON.stringify({ level: 'error', message: '[stderr] ' + line }) + '\\n');
-    }
+// Call medusa start() directly so it finds medusa-config.js and the admin
+// build at directory/medusa-config.js and directory/public/admin/index.html.
+require('@medusajs/medusa/commands/start')
+  .default({ port: PORT, directory: directory })
+  .catch(function (err) {
+    process.stdout.write(JSON.stringify({
+      level:   'error',
+      message: '[server/start.js] medusa start failed: ' + (err && err.message),
+      stack:   err && err.stack,
+    }) + '\\n');
+    process.exit(1);
   });
-});
-
-child.on('error', function (err) {
-  process.stdout.write(JSON.stringify({ level: 'error', message: '[spawn error] ' + err.message }) + '\\n');
-  process.exit(1);
-});
-
-child.on('exit', function (code, signal) {
-  process.stdout.write(JSON.stringify({
-    level: 'error', message: '[server exited]', code: code, signal: signal,
-  }) + '\\n');
-  process.exit(code == null ? 1 : code);
-});
 `;
 
 fs.writeFileSync(path.join(serverDir, 'start.js'), startScript);
