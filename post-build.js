@@ -74,3 +74,11 @@ pkg.scripts = pkg.scripts || {};
 pkg.scripts.start = 'node start.js';
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 console.log('post-build: patched .medusa/server/package.json start → node start.js');
+
+// 3. Copy medusa-config.js into .medusa/server/ so that when medusa start
+//    runs with cwd=.medusa/server/ it can resolve the config (directory defaults
+//    to cwd and medusa looks for medusa-config relative to that directory).
+const configSrc  = path.join(__dirname, 'medusa-config.js');
+const configDest = path.join(serverDir, 'medusa-config.js');
+fs.copyFileSync(configSrc, configDest);
+console.log('post-build: copied medusa-config.js → .medusa/server/medusa-config.js');
