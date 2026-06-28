@@ -2,30 +2,40 @@
 const path = require('path');
 const { spawn } = require('child_process');
 
+// Ensure we're in the project root
 process.chdir(__dirname);
 
-const PORT = String(parseInt(process.env.PORT || '9000', 10));
+const PORT    = String(parseInt(process.env.PORT || '9000', 10));
+// medusa start must run from .medusa/server/ (the compiled output directory).
+// When run from the project root it sees TypeScript source and exits after
+// migration scripts without starting HTTP. Running from the compiled dir
+// makes it serve the pre-built output and bind the HTTP server correctly.
+const serverDir = path.join(__dirname, '.medusa', 'server');
+// Use the project root's medusa binary (absolute path — not relative to cwd).
 const medusaBin = path.join(__dirname, 'node_modules', '.bin', 'medusa');
 
-// Force production mode and explicit port
 const env = Object.assign({}, process.env, {
-  PORT: PORT,
+  PORT:     PORT,
   NODE_ENV: 'production',
 });
 
-process.stdout.write(JSON.stringify({ level: 'info', message: '[start.js] CWD: ' + process.cwd(), port: PORT, node: process.version }) + '\n');
+process.stdout.write(JSON.stringify({
+  level: 'info',
+  message: '[start.js] spawning medusa start',
+  cwd: serverDir,
+  port: PORT,
+  node: process.version,
+}) + '\n');
 
-// Pipe stderr through stdout as JSON so Hostinger's log viewer captures errors.
-// medusa start crashes silently after migration scripts — we need to see why.
 const child = spawn(medusaBin, ['start', '--port', PORT], {
   stdio: ['inherit', 'inherit', 'pipe'],
-  cwd: __dirname,
-  env: env,
+  cwd:   serverDir,   // ← KEY: run from compiled output, not project root
+  env:   env,
 });
 
+// Pipe stderr as JSON so Hostinger's log viewer captures it
 child.stderr.on('data', function (chunk) {
-  const lines = chunk.toString().split('\n');
-  lines.forEach(function (line) {
+  chunk.toString().split('\n').forEach(function (line) {
     if (line.trim()) {
       process.stdout.write(JSON.stringify({ level: 'error', message: '[stderr] ' + line }) + '\n');
     }
