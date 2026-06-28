@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "node_modules/.bin/medusa build && node_modules/.bin/medusa db:migrate",
+    "build": "node_modules/.bin/medusa build && node_modules/.bin/medusa db:migrate && node post-build.js",
     "start": "node start.js",
     "dev": "node_modules/.bin/medusa develop",
     "seed": "node_modules/.bin/medusa exec ./src/scripts/seed.ts",
