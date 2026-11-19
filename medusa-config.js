@@ -8,6 +8,37 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 const pg = require("pg");
 pg.defaults.ssl = { rejectUnauthorized: false };
 
+// Admin dashboard branding: tab title "Bhuvan Reweaves Admin" and light theme
+// by default. The theme default only applies until someone picks a theme in
+// the user menu (Medusa stores that choice under "medusa_admin_theme").
+const ADMIN_TITLE = "Bhuvan Reweaves Admin";
+const adminBrandingHead = `
+    <title>${ADMIN_TITLE}</title>
+    <script>
+      (function () {
+        try {
+          if (!localStorage.getItem("medusa_admin_theme")) {
+            localStorage.setItem("medusa_admin_theme", "light");
+          }
+        } catch (e) {}
+        try {
+          var native = Object.getOwnPropertyDescriptor(Document.prototype, "title");
+          Object.defineProperty(document, "title", {
+            configurable: true,
+            get: function () { return native.get.call(this); },
+            set: function () { native.set.call(this, ${JSON.stringify(ADMIN_TITLE)}); },
+          });
+        } catch (e) {}
+      })();
+    </script>`;
+
+const adminBrandingPlugin = {
+  name: "bhuvan-admin-branding",
+  transformIndexHtml(html) {
+    return html.replace(/<head>/i, `<head>${adminBrandingHead}`);
+  },
+};
+
 module.exports = defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
@@ -25,6 +56,8 @@ module.exports = defineConfig({
   admin: {
     disable: false,
     backendUrl: process.env.MEDUSA_BACKEND_URL || "http://localhost:9000",
+    // Merged into Medusa's own Vite config, so return only the additions
+    vite: () => ({ plugins: [adminBrandingPlugin] }),
   },
   modules: [
     {
