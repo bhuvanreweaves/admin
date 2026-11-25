@@ -13,8 +13,10 @@
  *     - step 2: only Categories, Sizes (checkboxes) and one Price. Ticked
  *       sizes become Medusa's "Size" option with one variant per size.
  *       Shipping profile and sales channel are filled in automatically.
+ *  4. No "(Optional)" text next to field labels anywhere in the admin. The
+ *     fields stay optional; only the label text is hidden.
  *
- * Patches 2 and 3 edit Medusa's dashboard source by exact text match. If a
+ * Patches 2, 3 and 4 edit Medusa's dashboard source by exact text match. If a
  * Medusa upgrade changes that source, the patch is skipped with a warning and
  * the build still succeeds; the admin just shows Medusa's original version.
  */
@@ -32,10 +34,8 @@ const DETAIL_FIELDS = [
   ["color", "Color"],
   ["collar", "Collar"],
   ["size", "Size"],
-  ["material", "Material"],
   ["body_color", "Body Color"],
   ["border_color", "Border Color"],
-  ["length", "Length"],
   ["neckline", "Neckline"],
 ];
 
@@ -117,7 +117,7 @@ function BhuvanTextField({ form, name, label, multiline }) {
     control: form.control,
     name: "bhuvan_meta." + name,
     render: ({ field }) => jsxs(Form.Item, { children: [
-      jsx(Form.Label, { optional: true, children: label }),
+      jsx(Form.Label, { children: label }),
       jsx(Form.Control, { children: jsx(multiline ? Textarea : Input, { ...field, value: field.value ?? "" }) })
     ] })
   });
@@ -215,7 +215,7 @@ function BhuvanOrganizeSection({ form }) {
       control: form.control,
       name: "categories",
       render: ({ field }) => jsxs(Form.Item, { children: [
-        jsx(Form.Label, { optional: true, children: "Categories" }),
+        jsx(Form.Label, { children: "Categories" }),
         jsx(Form.Control, { children: jsx(CategoryCombobox, { ...field }) }),
         jsx(Form.ErrorMessage, {})
       ] })
@@ -293,11 +293,23 @@ function patchCreateForm(code) {
   );
 }
 
+// 4. Hide "(Optional)" -------------------------------------------------------
+// Medusa writes "(", t("fields.optional"), ")" inside a muted text element,
+// both in its shared Form.Label and in a few one-off forms. Emptying it hides
+// the text everywhere without making any field required.
+const OPTIONAL_MARKER = 't("fields.optional")';
+const OPTIONAL_TEXT = /"\(",\s*t\("fields\.optional"\),\s*"\)"/g;
+
+function patchOptionalLabels(code) {
+  return code.replace(OPTIONAL_TEXT, "");
+}
+
 // Patch runner -----------------------------------------------------------------
 const DASHBOARD_FILE = /@medusajs[\\/]dashboard[\\/]dist[\\/].*\.mjs$/;
 const PATCHES = [
   { name: "logo", marker: AVATAR_BOX, apply: patchLogo },
   { name: "create product fields", marker: CREATE_FORM_MARKER, apply: patchCreateForm },
+  { name: "hide optional labels", marker: OPTIONAL_MARKER, apply: patchOptionalLabels },
 ];
 
 function patchDashboardFile(code) {

@@ -38,10 +38,8 @@ const DETAIL_FIELDS: Field[] = [
   { key: "color", label: "Color" },
   { key: "collar", label: "Collar" },
   { key: "size", label: "Size" },
-  { key: "material", label: "Material" },
   { key: "body_color", label: "Body Color" },
   { key: "border_color", label: "Border Color" },
-  { key: "length", label: "Length" },
   { key: "neckline", label: "Neckline" },
 ]
 
